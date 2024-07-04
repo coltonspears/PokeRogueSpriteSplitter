@@ -8,10 +8,21 @@ def custom_sort_key(filename):
     match = re.match(r'^(\d+)', filename)
     if match:
         number = int(match.group(1))
-        # Return a tuple with the number and the rest of the string
-        return (number, filename[match.end():])
-    # If there's no number, return a tuple with a high number and the whole filename
-    return (float('inf'), filename)
+    else:
+        number = float('inf')  # Place non-numeric names at the end
+
+    # Check if this is a base form (no hyphen)
+    is_base_form = '-' not in filename
+
+    # Split the rest of the filename for secondary sorting
+    parts = filename.split('-', 1)
+    if len(parts) > 1:
+        secondary_sort = parts[1].lower()
+    else:
+        secondary_sort = ''
+
+    # Return a tuple: (number, is base form, secondary sort key)
+    return (number, not is_base_form, secondary_sort)
 
 def generate_csv(directory):
     # Get all files in the directory
@@ -36,7 +47,7 @@ def generate_csv(directory):
 
 if __name__ == "__main__":
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="Generate a CSV of filenames without extensions, sorted numerically then alphabetically.")
+    parser = argparse.ArgumentParser(description="Generate a CSV of filenames without extensions, sorted numerically with base forms before variations.")
     parser.add_argument("directory", nargs="?", default=os.getcwd(),
                         help="Directory containing the files (default: current directory)")
 
